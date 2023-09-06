@@ -206,6 +206,12 @@ export class CardsService {
           card.reversed ? (total += 2) : total++;
         });
 
+
+        if(this.settings.sourceSupport){
+            this.parser.updateCardSource(cardsToCreate)
+            this.anki.updateCards(cardsToCreate)
+        }
+
         this.writeAnkiBlocks(cardsToCreate);
 
         this.notifications.push(
