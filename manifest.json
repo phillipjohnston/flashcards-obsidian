@@ -1,10 +1,10 @@
 {
-  "id": "flashcards-obsidian",
-  "name": "Flashcards",
-  "version": "1.5.6",
-  "minAppVersion": "0.9.17",
-  "description": "Anki integration",
-  "author": "Alex Colucci",
-  "authorUrl": "https://github.com/reuseman",
+  "id": "flashcards-obsidian-pj",
+  "name": "Anki Synchronization",
+  "version": "1.5.7",
+  "minAppVersion": "1.4.0",
+  "description": "Write Anki flashcards in Obsidian and sync them to Anki.",
+  "author": "Phillip Johnston",
+  "authorUrl": "https://github.com/phillipjohnston",
   "isDesktopOnly": true
 }
