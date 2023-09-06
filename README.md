@@ -36,6 +36,13 @@ The following is a demo where the three main operations are shown:
 
 The wiki explains in detail [how to use it](https://github.com/reuseman/flashcards-obsidian/wiki).
 
+## How to Build
+
+```
+npm install
+npm run dev
+```
+
 ## How to install
 
 1. [Install](obsidian://show-plugin?id=flashcards-obsidian) this plugin on Obsidian:
