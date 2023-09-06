@@ -4,7 +4,6 @@ import {
   FileSystemAdapter,
   FrontMatterCache,
   Notice,
-  parseFrontMatterEntry,
   TFile,
 } from "obsidian";
 import { Parser } from "src/services/parser";
@@ -58,9 +57,8 @@ export class CardsService {
     // Parse frontmatter
     const frontmatter = fileCachedMetadata.frontmatter;
     let deckName = this.settings.deck;
-    if (frontmatter) {
-      deckName =
-        parseFrontMatterEntry(frontmatter, "cards-deck") || this.settings.deck;
+    if (frontmatter["cards-deck"]) {
+      deckName = frontmatter["cards-deck"];
     }
 
     try {
@@ -88,8 +86,10 @@ export class CardsService {
         filePath,
         globalTags
       );
-      const [cardsToCreate, cardsToUpdate, cardsNotInAnki] =
-        this.filterByUpdate(ankiCards, cards);
+      const [cardsToCreate, cardsToUpdate, cardsNotInAnki] = this.filterByUpdate(
+        ankiCards,
+        cards
+      );
       const cardIds: number[] = this.getCardsIds(ankiCards, cards);
       const cardsToDelete: number[] = this.parser.getCardsToDelete(this.file);
 
@@ -112,7 +112,7 @@ export class CardsService {
       this.insertMedias(cards, sourcePath);
       await this.deleteCardsOnAnki(cardsToDelete, ankiBlocks);
       await this.updateCardsOnAnki(cardsToUpdate);
-      await this.insertCardsOnAnki(cardsToCreate, frontmatter, deckName);
+      await this.insertCardsOnAnki(cardsToCreate);
 
       // Update decks if needed
       const deckNeedToBeChanged = await this.deckNeedToBeChanged(
@@ -137,6 +137,8 @@ export class CardsService {
           return ["Error: Could not update the file."];
         }
       }
+
+      this.updateFrontmatter(frontmatter, deckName);
 
       if (!this.notifications.length) {
         this.notifications.push("Nothing to do. Everything is up to date");
@@ -181,11 +183,7 @@ export class CardsService {
     }
   }
 
-  private async insertCardsOnAnki(
-    cardsToCreate: Card[],
-    frontmatter: FrontMatterCache,
-    deckName: string
-  ): Promise<number> {
+  private async insertCardsOnAnki(cardsToCreate: Card[]): Promise<number> {
     if (cardsToCreate.length) {
       let insertedCards = 0;
       try {
@@ -208,7 +206,6 @@ export class CardsService {
           card.reversed ? (total += 2) : total++;
         });
 
-        this.updateFrontmatter(frontmatter, deckName);
         this.writeAnkiBlocks(cardsToCreate);
 
         this.notifications.push(
@@ -223,31 +220,11 @@ export class CardsService {
   }
 
   private updateFrontmatter(frontmatter: FrontMatterCache, deckName: string) {
-    let newFrontmatter = "";
-    const cardsDeckLine = `cards-deck: ${deckName}\n`;
-    if (frontmatter) {
-      const oldFrontmatter: string = this.file.substring(
-        frontmatter.position.start.offset,
-        frontmatter.position.end.offset
-      );
-      if (!oldFrontmatter.match(this.regex.cardsDeckLine)) {
-        newFrontmatter =
-          oldFrontmatter.substring(0, oldFrontmatter.length - 3) +
-          cardsDeckLine +
-          "---";
-        this.totalOffset += cardsDeckLine.length;
-        this.file =
-          newFrontmatter +
-          this.file.substring(
-            frontmatter.position.end.offset,
-            this.file.length + 1
-          );
-      }
-    } else {
-      newFrontmatter = `---\n${cardsDeckLine}---\n\n`;
-      this.totalOffset += newFrontmatter.length;
-      this.file = newFrontmatter + this.file;
-    }
+    const activeFile = this.app.workspace.getActiveFile();
+
+    this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+      frontmatter["cards-deck"] = deckName;
+    });
   }
 
   private writeAnkiBlocks(cardsToCreate: Card[]) {
