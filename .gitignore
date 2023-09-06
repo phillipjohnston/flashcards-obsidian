@@ -10,6 +10,9 @@ package-lock.json
 main.js
 *.js.map
 
+# Obsidian usage
+data.json
+
 # scripts
 move.sh
 
@@ -24,5 +27,4 @@ move.sh
 # Local History for Visual Studio Code
 .history/
 
-# Gtihub
 .DS_Store
