@@ -206,7 +206,6 @@ export class CardsService {
           card.reversed ? (total += 2) : total++;
         });
 
-
         if(this.settings.sourceSupport){
             this.parser.updateCardSource(cardsToCreate)
             this.anki.updateCards(cardsToCreate)
@@ -262,6 +261,9 @@ export class CardsService {
   private async updateCardsOnAnki(cards: Card[]): Promise<number> {
     if (cards.length) {
       try {
+        if(this.settings.sourceSupport){
+            this.parser.updateCardSource(cards)
+        }
         this.anki.updateCards(cards);
         this.notifications.push(
           `Updated successfully ${cards.length}/${cards.length} cards.`
