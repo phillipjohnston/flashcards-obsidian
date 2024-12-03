@@ -59,6 +59,7 @@ export class CardsService {
     let deckName = this.settings.deck;
     if (frontmatter["cards-deck"]) {
       deckName = frontmatter["cards-deck"];
+      globalTags = this.parseGlobalTags(frontmatter);
     }
 
     try {
@@ -72,7 +73,7 @@ export class CardsService {
       if (!this.file.endsWith("\n")) {
         this.file += "\n";
       }
-      globalTags = this.parseGlobalTags(this.file);
+
       // TODO with empty check that does not call ankiCards line
       const ankiBlocks = this.parser.getAnkiIDsBlocks(this.file);
       const ankiCards = ankiBlocks
@@ -385,24 +386,21 @@ export class CardsService {
     return ids;
   }
 
-  public parseGlobalTags(file: string): string[] {
+  public parseGlobalTags(frontmatter: FrontMatterCache): string[] {
     let globalTags: string[] = [];
 
-    const tags = file.match(/(?:cards-)?tags: ?(.*)/im);
-    globalTags = tags ? tags[1].match(this.regex.globalTagsSplitter) : [];
-
-    if (globalTags) {
-      for (let i = 0; i < globalTags.length; i++) {
-        globalTags[i] = globalTags[i].replace("#", "");
-        globalTags[i] = globalTags[i].replace("/", "::");
-        globalTags[i] = globalTags[i].replace(/\[\[(.*)\]\]/, "$1");
-        globalTags[i] = globalTags[i].trim();
-        globalTags[i] = globalTags[i].replace(/ /g, "-");
-      }
-
-      return globalTags;
+    if(frontmatter["cards-tags"])
+    {
+      globalTags = globalTags.concat(frontmatter["cards-tags"]);
     }
 
-    return [];
+    // TODO: could put this around an option to remove it if there's no
+    // desire to use global file tags
+    if(frontmatter["tags"])
+    {
+      globalTags = globalTags.concat(frontmatter["tags"]);
+    }
+
+    return globalTags;
   }
 }
