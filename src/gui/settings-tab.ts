@@ -188,6 +188,16 @@ export class SettingsTab extends PluginSettingTab {
 
 
     new Setting(containerEl)
+      .setName("Also use global tags")
+      .setDesc("When true, 'tags' in the frontmatter will be added to cards in addition to any cards-tags.")
+      .addToggle((toggle) =>
+        toggle.setValue(plugin.settings.includeGlobalTags).onChange((value) => {
+          plugin.settings.includeGlobalTags = value;
+          plugin.saveData(plugin.settings);
+        })
+      );
+
+    new Setting(containerEl)
       .setName("Default Anki tag")
       .setDesc("This tag will be added to each generated card on Anki")
       .addText((text) => {

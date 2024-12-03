@@ -396,7 +396,7 @@ export class CardsService {
 
     // TODO: could put this around an option to remove it if there's no
     // desire to use global file tags
-    if(frontmatter["tags"])
+    if(this.settings.includeGlobalTags && frontmatter["tags"])
     {
       globalTags = globalTags.concat(frontmatter["tags"]);
     }
