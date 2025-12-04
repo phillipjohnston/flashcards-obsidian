@@ -171,8 +171,6 @@ export class CardsService {
 
   private async generateMediaLinks(cards: Card[], sourcePath: string) {
     if (this.app.vault.adapter instanceof FileSystemAdapter) {
-      // @ts-ignore: Unreachable code error
-
       for (const card of cards) {
         for (const media of card.mediaNames) {
           const image = this.app.metadataCache.getFirstLinkpathDest(

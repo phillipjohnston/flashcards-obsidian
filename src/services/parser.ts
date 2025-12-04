@@ -374,7 +374,7 @@ export class Parser {
   }
 
   public updateCardSource(cards: Card[]) {
-    for (let card of cards) {
+    for (const card of cards) {
       if (card.id == null) continue;
       card.fields["Source"] = card.fields["Source"].replace(
         "__BLOCK_ID__",
@@ -400,7 +400,7 @@ export class Parser {
   private substituteImageLinks(str: string): string {
     str = str.replace(this.regex.wikiImageLinks, "<img src='$1'>");
     str = str.replace(this.regex.markdownImageLinks, "<img src='$1'>");
-    str = str.replace(this.regex.htmlImgTags, function (match, p1) {
+    str = str.replace(this.regex.htmlImgTags, function (match) {
       return substituteSep(match);
     });
 
