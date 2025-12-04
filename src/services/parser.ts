@@ -42,10 +42,9 @@ export class Parser {
       headings = [...file.matchAll(this.regex.headingsRegex)];
     }
 
-     // filter  in cacheCodeSections only the objects with type "code"
+    // filter  in cacheCodeSections only the objects with type "code"
     // the line is 0-indexed
     // const codeSections = this.app.metadataCache.getFileCache(this.app.workspace.getActiveFile()).sections.filter(section => section.type === "code")
-
 
     note = this.substituteObsidianLinks(`[[${note}]]`, vault);
     cards = cards.concat(
@@ -202,7 +201,8 @@ export class Parser {
         continue;
       }
 
-      const reversed: boolean = match[3] === this.settings.inlineSeparatorReverse;
+      const reversed: boolean =
+        match[3] === this.settings.inlineSeparatorReverse;
       let headingLevel = -1;
       if (match[1]) {
         headingLevel =
@@ -373,11 +373,14 @@ export class Parser {
     return links;
   }
 
-  public updateCardSource(cards: Card[]){
-      for(let card of cards){
-          if(card.id == null) continue
-          card.fields["Source"] = card.fields["Source"].replace("__BLOCK_ID__", String(card.id));
-      }
+  public updateCardSource(cards: Card[]) {
+    for (let card of cards) {
+      if (card.id == null) continue;
+      card.fields["Source"] = card.fields["Source"].replace(
+        "__BLOCK_ID__",
+        String(card.id)
+      );
+    }
   }
 
   private substituteObsidianLinks(str: string, vaultName: string) {

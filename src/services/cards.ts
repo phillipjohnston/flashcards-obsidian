@@ -87,10 +87,8 @@ export class CardsService {
         filePath,
         globalTags
       );
-      const [cardsToCreate, cardsToUpdate, cardsNotInAnki] = this.filterByUpdate(
-        ankiCards,
-        cards
-      );
+      const [cardsToCreate, cardsToUpdate, cardsNotInAnki] =
+        this.filterByUpdate(ankiCards, cards);
       const cardIds: number[] = this.getCardsIds(ankiCards, cards);
       const cardsToDelete: number[] = this.parser.getCardsToDelete(this.file);
 
@@ -147,7 +145,9 @@ export class CardsService {
       return this.notifications;
     } catch (err) {
       console.error(err);
-      const errorMessage = "Error: Something went wrong - " + (err instanceof Error ? err.message : String(err));
+      const errorMessage =
+        "Error: Something went wrong - " +
+        (err instanceof Error ? err.message : String(err));
       new Notice(errorMessage, noticeTimeout);
       return [errorMessage];
     }
@@ -161,7 +161,9 @@ export class CardsService {
       await this.anki.storeMediaFiles(cards);
     } catch (err) {
       console.error(err);
-      const errorMessage = "Error: Could not upload medias - " + (err instanceof Error ? err.message : String(err));
+      const errorMessage =
+        "Error: Could not upload medias - " +
+        (err instanceof Error ? err.message : String(err));
       new Notice(errorMessage, noticeTimeout);
       this.notifications.push(errorMessage);
     }
@@ -181,7 +183,9 @@ export class CardsService {
             const binaryMedia = await this.app.vault.readBinary(image);
             card.mediaBase64Encoded.push(arrayBufferToBase64(binaryMedia));
           } catch (err) {
-            const errorMessage = "Error: Could not read media - " + (err instanceof Error ? err.message : String(err));
+            const errorMessage =
+              "Error: Could not read media - " +
+              (err instanceof Error ? err.message : String(err));
             console.error(errorMessage);
             new Notice(errorMessage, noticeTimeout);
             this.notifications.push(errorMessage);
@@ -213,9 +217,9 @@ export class CardsService {
           card.reversed ? (total += 2) : total++;
         });
 
-        if(this.settings.sourceSupport){
-            this.parser.updateCardSource(cardsToCreate)
-            this.anki.updateCards(cardsToCreate)
+        if (this.settings.sourceSupport) {
+          this.parser.updateCardSource(cardsToCreate);
+          this.anki.updateCards(cardsToCreate);
         }
 
         this.writeAnkiBlocks(cardsToCreate);
@@ -228,8 +232,11 @@ export class CardsService {
         console.error(err);
         const errorMsg = err instanceof Error ? err.message : String(err);
         const cardsList = cardsToCreate
-          .map((card, idx) => `  ${idx + 1}. ${card.initialContent.substring(0, 100)}${card.initialContent.length > 100 ? '...' : ''}`)
-          .join('\n');
+          .map(
+            (card, idx) =>
+              `  ${idx + 1}. ${card.initialContent.substring(0, 100)}${card.initialContent.length > 100 ? "..." : ""}`
+          )
+          .join("\n");
         const errorMessage = `Error: Could not write cards on Anki - ${errorMsg}\n\nAttempted to create:\n${cardsList}`;
         new Notice(errorMessage, noticeTimeout);
         this.notifications.push(errorMessage);
@@ -274,8 +281,8 @@ export class CardsService {
   private async updateCardsOnAnki(cards: Card[]): Promise<number> {
     if (cards.length) {
       try {
-        if(this.settings.sourceSupport){
-            this.parser.updateCardSource(cards)
+        if (this.settings.sourceSupport) {
+          this.parser.updateCardSource(cards);
         }
         this.anki.updateCards(cards);
         this.notifications.push(
@@ -283,7 +290,9 @@ export class CardsService {
         );
       } catch (err) {
         console.error(err);
-        const errorMessage = "Error: Could not update cards on Anki - " + (err instanceof Error ? err.message : String(err));
+        const errorMessage =
+          "Error: Could not update cards on Anki - " +
+          (err instanceof Error ? err.message : String(err));
         new Notice(errorMessage, noticeTimeout);
         this.notifications.push(errorMessage);
       }
@@ -320,7 +329,9 @@ export class CardsService {
             );
           } catch (err) {
             console.error(err);
-            const errorMessage = "Error: Could not delete the card from Anki - " + (err instanceof Error ? err.message : String(err));
+            const errorMessage =
+              "Error: Could not delete the card from Anki - " +
+              (err instanceof Error ? err.message : String(err));
             new Notice(errorMessage, noticeTimeout);
             this.notifications.push(errorMessage);
           }
@@ -405,15 +416,13 @@ export class CardsService {
   public parseGlobalTags(frontmatter: FrontMatterCache): string[] {
     let globalTags: string[] = [];
 
-    if(frontmatter["cards-tags"])
-    {
+    if (frontmatter["cards-tags"]) {
       globalTags = globalTags.concat(frontmatter["cards-tags"]);
     }
 
     // TODO: could put this around an option to remove it if there's no
     // desire to use global file tags
-    if(this.settings.includeGlobalTags && frontmatter["tags"])
-    {
+    if (this.settings.includeGlobalTags && frontmatter["tags"]) {
       globalTags = globalTags.concat(frontmatter["tags"]);
     }
 

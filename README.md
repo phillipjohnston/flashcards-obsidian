@@ -17,7 +17,7 @@ Anki integration for [Obsidian](https://obsidian.md/).
 🏷️ Global and local **tags**  
 🔢 Support for **LaTeX**  
 🖼️ Support for **images**  
-🎤 Support for **audios**   
+🎤 Support for **audios**  
 🔗 Support for **Obsidian URI**  
 ⚓ Support for **reference to note**  
 📟 Support for **code syntax highlight**
@@ -46,7 +46,6 @@ npm run dev
 ## How to install
 
 1. [Install](obsidian://show-plugin?id=flashcards-obsidian) this plugin on Obsidian:
-
    - Open Settings > Community plugins
    - Make sure Safe mode is off
    - Click Browse community plugins

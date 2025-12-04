@@ -45,10 +45,9 @@ export function escapeMarkdown(string: string, skips: string[] = []) {
   }, string);
 }
 
-
-  export function escapeRegExp(str: string) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
-  }
+export function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
 
 export function substituteSep(str: string): string {
   return str.replace(/\//g, "__");

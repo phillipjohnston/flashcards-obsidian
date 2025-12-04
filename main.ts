@@ -1,64 +1,80 @@
-import { addIcon, Notice, Plugin, TFile } from 'obsidian';
-import { ISettings } from 'src/settings';
-import { SettingsTab } from 'src/gui/settings-tab';
-import { CardsService } from 'src/services/cards';
-import { Anki } from 'src/services/anki';
-import { noticeTimeout, flashcardsIcon } from 'src/constants';
+import { addIcon, Notice, Plugin, TFile } from "obsidian";
+import { ISettings } from "src/settings";
+import { SettingsTab } from "src/gui/settings-tab";
+import { CardsService } from "src/services/cards";
+import { Anki } from "src/services/anki";
+import { noticeTimeout, flashcardsIcon } from "src/constants";
 
 export default class ObsidianFlashcard extends Plugin {
-	private settings: ISettings
-	private cardsService: CardsService
+  private settings: ISettings;
+  private cardsService: CardsService;
 
-	async onload() {
-		addIcon("flashcards", flashcardsIcon)
+  async onload() {
+    addIcon("flashcards", flashcardsIcon);
 
-		// TODO test when file did not insert flashcards, but one of them is in Anki already
-		this.settings = await this.loadData() || this.getDefaultSettings()
-		this.cardsService = new CardsService(this.app, this.settings)
+    // TODO test when file did not insert flashcards, but one of them is in Anki already
+    this.settings = (await this.loadData()) || this.getDefaultSettings();
+    this.cardsService = new CardsService(this.app, this.settings);
 
-		this.addCommand({
-			id: 'generate-flashcard-current-file',
-			name: 'Generate for the current file',
-			checkCallback: (checking: boolean) => {
-				const activeFile = this.app.workspace.getActiveFile()
-				if (activeFile) {
-					if (!checking) {
-						this.generateCards(activeFile)
-					}
-					return true;
-				}
-				return false;
-			}
-		});
+    this.addCommand({
+      id: "generate-flashcard-current-file",
+      name: "Generate for the current file",
+      checkCallback: (checking: boolean) => {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (activeFile) {
+          if (!checking) {
+            this.generateCards(activeFile);
+          }
+          return true;
+        }
+        return false;
+      },
+    });
 
-		this.addRibbonIcon('flashcards', 'Generate flashcards', () => {
-			const activeFile = this.app.workspace.getActiveFile()
-			if (activeFile) {
-				this.generateCards(activeFile)
-			} else {
-				new Notice("Open a file before")
-			}
-		});
+    this.addRibbonIcon("flashcards", "Generate flashcards", () => {
+      const activeFile = this.app.workspace.getActiveFile();
+      if (activeFile) {
+        this.generateCards(activeFile);
+      } else {
+        new Notice("Open a file before");
+      }
+    });
 
-		this.addSettingTab(new SettingsTab(this.app, this));
-	}
+    this.addSettingTab(new SettingsTab(this.app, this));
+  }
 
-	async onunload() {
-		await this.saveData(this.settings);
-	}
+  async onunload() {
+    await this.saveData(this.settings);
+  }
 
-	private getDefaultSettings(): ISettings {
-		return { contextAwareMode: true, sourceSupport: false, codeHighlightSupport: false, inlineID: false, contextSeparator: " > ", deck: "Default", flashcardsTag: "card", inlineSeparator: "::", inlineSeparatorReverse: ":::", defaultAnkiTag: "obsidian", ankiConnectPermission: false, includeGlobalTags: true }
-	}
+  private getDefaultSettings(): ISettings {
+    return {
+      contextAwareMode: true,
+      sourceSupport: false,
+      codeHighlightSupport: false,
+      inlineID: false,
+      contextSeparator: " > ",
+      deck: "Default",
+      flashcardsTag: "card",
+      inlineSeparator: "::",
+      inlineSeparatorReverse: ":::",
+      defaultAnkiTag: "obsidian",
+      ankiConnectPermission: false,
+      includeGlobalTags: true,
+    };
+  }
 
-	private generateCards(activeFile: TFile) {
-		this.cardsService.execute(activeFile).then(res => {
-			for (const r of res) {
-				new Notice(r, noticeTimeout)
-			}
-			console.log(res)
-		}).catch(err => {
-			Error(err)
-		})
-	}
+  private generateCards(activeFile: TFile) {
+    this.cardsService
+      .execute(activeFile)
+      .then((res) => {
+        for (const r of res) {
+          new Notice(r, noticeTimeout);
+        }
+        console.log(res);
+      })
+      .catch((err) => {
+        Error(err);
+      });
+  }
 }

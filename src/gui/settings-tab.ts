@@ -10,34 +10,35 @@ export class SettingsTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h1", { text: "Flashcards" });
 
-    const description = createFragment()
+    const description = createFragment();
     description.append(
       "This needs to be done only one time. Open Anki and click the button to grant permission.",
-          createEl('br'),
-        'Be aware that AnkiConnect must be installed.',
-    )
+      createEl("br"),
+      "Be aware that AnkiConnect must be installed."
+    );
 
     new Setting(containerEl)
       .setName("Give Permission")
       .setDesc(description)
       .addButton((button) => {
         button.setButtonText("Grant Permission").onClick(() => {
-
-          new Anki().requestPermission().then((result) => {
-            if (result.permission === "granted") {
-              plugin.settings.ankiConnectPermission = true;
-              plugin.saveData(plugin.settings);
-              new Notice("Anki Connect permission granted");
-            } else {
-              new Notice("AnkiConnect permission not granted");
-            }
-          }).catch((error) => {
-            new Notice("Something went wrong, is Anki open?");
-            console.error(error);
-          });
+          new Anki()
+            .requestPermission()
+            .then((result) => {
+              if (result.permission === "granted") {
+                plugin.settings.ankiConnectPermission = true;
+                plugin.saveData(plugin.settings);
+                new Notice("Anki Connect permission granted");
+              } else {
+                new Notice("AnkiConnect permission not granted");
+              }
+            })
+            .catch((error) => {
+              new Notice("Something went wrong, is Anki open?");
+              console.error(error);
+            });
         });
       });
-  
 
     new Setting(containerEl)
       .setName("Test Anki")
@@ -133,23 +134,26 @@ export class SettingsTab extends PluginSettingTab {
           });
       });
 
-     new Setting(containerEl)
+    new Setting(containerEl)
       .setName("Inline card separator")
-      .setDesc(
-        "The separator to identifty the inline cards in the notes."
-      )
+      .setDesc("The separator to identifty the inline cards in the notes.")
       .addText((text) => {
         text
           .setValue(plugin.settings.inlineSeparator)
           .setPlaceholder("::")
           .onChange((value) => {
             // if the value is empty or is the same like the inlineseparatorreverse then set it to the default, otherwise save it
-            if (value.trim().length === 0 || value === plugin.settings.inlineSeparatorReverse) {
+            if (
+              value.trim().length === 0 ||
+              value === plugin.settings.inlineSeparatorReverse
+            ) {
               plugin.settings.inlineSeparator = "::";
               if (value.trim().length === 0) {
                 new Notice("The separator must be at least 1 character long");
               } else if (value === plugin.settings.inlineSeparatorReverse) {
-                new Notice("The separator must be different from the inline reverse separator");
+                new Notice(
+                  "The separator must be different from the inline reverse separator"
+                );
               }
             } else {
               plugin.settings.inlineSeparator = escapeRegExp(value.trim());
@@ -159,8 +163,7 @@ export class SettingsTab extends PluginSettingTab {
           });
       });
 
-
-     new Setting(containerEl)
+    new Setting(containerEl)
       .setName("Inline reverse card separator")
       .setDesc(
         "The separator to identifty the inline revese cards in the notes."
@@ -171,25 +174,33 @@ export class SettingsTab extends PluginSettingTab {
           .setPlaceholder(":::")
           .onChange((value) => {
             // if the value is empty or is the same like the inlineseparatorreverse then set it to the default, otherwise save it
-            if (value.trim().length === 0 || value === plugin.settings.inlineSeparator) {
+            if (
+              value.trim().length === 0 ||
+              value === plugin.settings.inlineSeparator
+            ) {
               plugin.settings.inlineSeparatorReverse = ":::";
               if (value.trim().length === 0) {
                 new Notice("The separator must be at least 1 character long");
               } else if (value === plugin.settings.inlineSeparator) {
-                new Notice("The separator must be different from the inline separator");
+                new Notice(
+                  "The separator must be different from the inline separator"
+                );
               }
             } else {
-              plugin.settings.inlineSeparatorReverse = escapeRegExp(value.trim());
+              plugin.settings.inlineSeparatorReverse = escapeRegExp(
+                value.trim()
+              );
               new Notice("The separator has been changed");
             }
             plugin.saveData(plugin.settings);
           });
       });
 
-
     new Setting(containerEl)
       .setName("Also use global tags")
-      .setDesc("When true, 'tags' in the frontmatter will be added to cards in addition to any cards-tags.")
+      .setDesc(
+        "When true, 'tags' in the frontmatter will be added to cards in addition to any cards-tags."
+      )
       .addToggle((toggle) =>
         toggle.setValue(plugin.settings.includeGlobalTags).onChange((value) => {
           plugin.settings.includeGlobalTags = value;

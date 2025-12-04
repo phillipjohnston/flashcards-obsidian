@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
-    "build": "rollup --config rollup.config.js"
+    "build": "rollup --config rollup.config.js",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\""
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "@typescript-eslint/parser": "^5.7.0",
     "eslint": "^8.4.1",
     "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+    "prettier": "^3.7.4",
     "rollup": "^4.27.4",
     "ts-node": "^9.1.0",
     "tslib": "^2.3.0",

@@ -62,16 +62,30 @@ export class Regex {
     this.flashscardsWithTag = new RegExp(str, flags);
 
     // https://regex101.com/r/8wmOo8/1
-    const sepLongest = settings.inlineSeparator.length >= settings.inlineSeparatorReverse.length ? settings.inlineSeparator : settings.inlineSeparatorReverse;
-    const sepShortest = settings.inlineSeparator.length < settings.inlineSeparatorReverse.length ? settings.inlineSeparator : settings.inlineSeparatorReverse;
+    const sepLongest =
+      settings.inlineSeparator.length >= settings.inlineSeparatorReverse.length
+        ? settings.inlineSeparator
+        : settings.inlineSeparatorReverse;
+    const sepShortest =
+      settings.inlineSeparator.length < settings.inlineSeparatorReverse.length
+        ? settings.inlineSeparator
+        : settings.inlineSeparatorReverse;
     // sepLongest is the longest between the inlineSeparator and the inlineSeparatorReverse because if the order is ::|::: then always the first will be matched
     // sepShortest is the shortest
     if (settings.inlineID) {
       str =
-        "( {0,3}[#]{0,6})?(?:(?:[\\t ]*)(?:\\d\\.|[-+*]|#{1,6}))?(.+?) ?(" + sepLongest + "|" + sepShortest + ") ?(.+?)((?: *#[\\p{Letter}\\-\\/_]+)+)?(?:\\s+\\^(\\d{13})|$)";
+        "( {0,3}[#]{0,6})?(?:(?:[\\t ]*)(?:\\d\\.|[-+*]|#{1,6}))?(.+?) ?(" +
+        sepLongest +
+        "|" +
+        sepShortest +
+        ") ?(.+?)((?: *#[\\p{Letter}\\-\\/_]+)+)?(?:\\s+\\^(\\d{13})|$)";
     } else {
       str =
-        "( {0,3}[#]{0,6})?(?:(?:[\\t ]*)(?:\\d\\.|[-+*]|#{1,6}))?(.+?) ?(" + sepLongest + "|" + sepShortest + ") ?(.+?)((?: *#[\\p{Letter}\\-\\/_]+)+|$)(?:\\n\\^(\\d{13}))?";
+        "( {0,3}[#]{0,6})?(?:(?:[\\t ]*)(?:\\d\\.|[-+*]|#{1,6}))?(.+?) ?(" +
+        sepLongest +
+        "|" +
+        sepShortest +
+        ") ?(.+?)((?: *#[\\p{Letter}\\-\\/_]+)+|$)(?:\\n\\^(\\d{13}))?";
     }
     this.cardsInlineStyle = new RegExp(str, flags);
 
@@ -88,7 +102,7 @@ export class Regex {
 
     // str = "( {0,3}[#]{0,6})?(?:(?:[\t ]*)(?:\\d.|[-+*]|#{1,6}))?(.*?(==.+?==|{.+?}).*?)((?: *#[\\w-]+)+|$)(?:\n\\^(?:\\d{13}))?"
     // this.cardsClozeWholeLine = new RegExp(str, flags);
-    
+
     // this.singleClozeCurly = /((?:{)(?:(\d):?)?(.+?)(?:}))/g;
     // this.singleClozeHighlight = /((?:==)(.+?)(?:==))/g;
   }
