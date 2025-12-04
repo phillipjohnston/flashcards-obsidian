@@ -147,7 +147,9 @@ export class CardsService {
       return this.notifications;
     } catch (err) {
       console.error(err);
-      Error("Something went wrong");
+      const errorMessage = "Error: Something went wrong - " + (err instanceof Error ? err.message : String(err));
+      new Notice(errorMessage, noticeTimeout);
+      return [errorMessage];
     }
   }
 
@@ -159,7 +161,9 @@ export class CardsService {
       await this.anki.storeMediaFiles(cards);
     } catch (err) {
       console.error(err);
-      Error("Error: Could not upload medias");
+      const errorMessage = "Error: Could not upload medias - " + (err instanceof Error ? err.message : String(err));
+      new Notice(errorMessage, noticeTimeout);
+      this.notifications.push(errorMessage);
     }
   }
 
@@ -177,7 +181,10 @@ export class CardsService {
             const binaryMedia = await this.app.vault.readBinary(image);
             card.mediaBase64Encoded.push(arrayBufferToBase64(binaryMedia));
           } catch (err) {
-            Error("Error: Could not read media");
+            const errorMessage = "Error: Could not read media - " + (err instanceof Error ? err.message : String(err));
+            console.error(errorMessage);
+            new Notice(errorMessage, noticeTimeout);
+            this.notifications.push(errorMessage);
           }
         }
       }
@@ -219,7 +226,13 @@ export class CardsService {
         return insertedCards;
       } catch (err) {
         console.error(err);
-        Error("Error: Could not write cards on Anki");
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const cardsList = cardsToCreate
+          .map((card, idx) => `  ${idx + 1}. ${card.initialContent.substring(0, 100)}${card.initialContent.length > 100 ? '...' : ''}`)
+          .join('\n');
+        const errorMessage = `Error: Could not write cards on Anki - ${errorMsg}\n\nAttempted to create:\n${cardsList}`;
+        new Notice(errorMessage, noticeTimeout);
+        this.notifications.push(errorMessage);
       }
     }
   }
@@ -270,7 +283,9 @@ export class CardsService {
         );
       } catch (err) {
         console.error(err);
-        Error("Error: Could not update cards on Anki");
+        const errorMessage = "Error: Could not update cards on Anki - " + (err instanceof Error ? err.message : String(err));
+        new Notice(errorMessage, noticeTimeout);
+        this.notifications.push(errorMessage);
       }
 
       return cards.length;
@@ -305,7 +320,9 @@ export class CardsService {
             );
           } catch (err) {
             console.error(err);
-            Error("Error, could not delete the card from Anki");
+            const errorMessage = "Error: Could not delete the card from Anki - " + (err instanceof Error ? err.message : String(err));
+            new Notice(errorMessage, noticeTimeout);
+            this.notifications.push(errorMessage);
           }
         }
       }
