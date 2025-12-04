@@ -1,0 +1,5 @@
+node_modules
+*.js
+!rollup.config.js
+coverage
+.obsidian
