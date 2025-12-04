@@ -5,6 +5,7 @@ export class Regex {
   wikiImageLinks: RegExp;
   markdownImageLinks: RegExp;
   wikiAudioLinks: RegExp;
+  htmlImgTags: RegExp;
   obsidianCodeBlock: RegExp;
   codeBlock: RegExp;
   cardsDeckLine: RegExp;
@@ -36,12 +37,14 @@ export class Regex {
     this.wikiAudioLinks =
       /!\[\[(.*\.(?:mp3|webm|wav|m4a|ogg|3gp|flac)).*?\]\]/gim;
 
+    this.htmlImgTags = /<img src='([^']+)'/g;
+
     // https://regex101.com/r/eqnJeW/1
     this.obsidianCodeBlock = /(?:```(?:.*?\n?)+?```)(?:\n|$)/gim;
 
     this.codeBlock = /<code\b[^>]*>(.*?)<\/code>/gims;
 
-    this.cardsDeckLine = /cards-deck: [\p{L}]+/giu;
+    this.cardsDeckLine = /cards-deck: [^\n]+/giu;
     this.cardsToDelete = /^\s*(?:\n)(?:\^(\d{13}))(?:\n\s*?)?/gm;
 
     // https://regex101.com/r/WxuFI2/1
