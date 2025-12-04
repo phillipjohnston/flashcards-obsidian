@@ -13,11 +13,8 @@ export default class ObsidianFlashcard extends Plugin {
 		addIcon("flashcards", flashcardsIcon)
 
 		// TODO test when file did not insert flashcards, but one of them is in Anki already
-		const anki = new Anki()
 		this.settings = await this.loadData() || this.getDefaultSettings()
 		this.cardsService = new CardsService(this.app, this.settings)
-
-		const statusBar = this.addStatusBarItem()
 
 		this.addCommand({
 			id: 'generate-flashcard-current-file',
@@ -44,10 +41,6 @@ export default class ObsidianFlashcard extends Plugin {
 		});
 
 		this.addSettingTab(new SettingsTab(this.app, this));
-
-		this.registerInterval(window.setInterval(() =>
-			anki.ping().then(() => statusBar.setText('Anki ⚡️')).catch(() => statusBar.setText('')), 15 * 1000
-		));
 	}
 
 	async onunload() {
