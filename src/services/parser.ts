@@ -385,7 +385,7 @@ export class Parser {
     vaultName = encodeURIComponent(vaultName);
 
     return str.replace(linkRegex, (match, filename, rename) => {
-      const href = `obsidian://open?vault=${vaultName}&file=${encodeURIComponent(
+      const href = `obsidian://open?vault=${vaultName}&amp;file=${encodeURIComponent(
         filename + "#^__BLOCK_ID__"
       )}`;
       const fileRename = rename ? rename : filename;
