@@ -197,10 +197,9 @@ export class CardsService {
         let total = 0;
         cardsToCreate.forEach((card) => {
           if (card.id === null) {
-            new Notice(
-              `Error, could not add: '${card.initialContent}'`,
-              noticeTimeout
-            );
+            const errorMessage = `Error, could not add: '${card.initialContent}'`;
+            new Notice(errorMessage, noticeTimeout);
+            this.notifications.push(errorMessage);
           } else {
             card.reversed ? (insertedCards += 2) : insertedCards++;
           }
