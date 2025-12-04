@@ -43,6 +43,12 @@ npm install
 npm run dev
 ```
 
+  You can now run:
+  - npm run lint - Check code quality
+  - npm run format - Format code with Prettier
+  - npm run build - Build the plugin
+
+
 ## How to install
 
 1. [Install](obsidian://show-plugin?id=flashcards-obsidian) this plugin on Obsidian:
