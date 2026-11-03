@@ -101,20 +101,21 @@ export class Regex {
       "[/-]spaced)((?: *#[\\p{Letter}-]+)*) *\\n?(?:\\^(\\d{13}))?";
     this.cardsSpacedStyle = new RegExp(str, flags);
 
-    // Overlapping cloze: a title line tagged #<tag>/overlap followed by a list.
+    // Overlapping cloze: a title line tagged #<tag>/overlap followed by a list
+    // or by plain lines (e.g. a poem), up to the next blank line.
     //   - Three Times #anki/overlap %%overlap: 2,1%% ^1234567890123
     //   \t1. Past
     //   \t2. Present
     // 1: line prefix (heading/list marker), 2: title, 3: extra tags,
     // 4: overlap spec from the %%overlap: ...%% comment, 5: (unused, empty),
-    // 6: Anki ID, 7: list item lines
+    // 6: Anki ID, 7: item lines (non-blank)
     str =
       "^([ \\t]*(?:#{1,6} +|[-+*] +|\\d+[.)] +)?)([^\\n]+?) +#" +
       settings.flashcardsTag +
       "[/-]overlap((?: +#[\\p{Letter}\\-\\/_]+)*)(?:[ \\t]*%%\\s*overlap:?\\s*([^%\\n]*?)\\s*%%)?()(?:[ \\t]+\\^(\\d{13}))?[ \\t]*\\n" +
       "((?:(?![^\\n]*#" +
       settings.flashcardsTag +
-      "[/-]overlap)[ \\t]*(?:\\d+[.)]|[-+*])[ \\t]+[^\\n]*(?:\\n|$))+)";
+      "[/-]overlap)[ \\t]*\\S[^\\n]*(?:\\n|$))+)";
     this.cardsOverlapStyle = new RegExp(str, flags);
 
     // https://regex101.com/r/cgtnLf/1

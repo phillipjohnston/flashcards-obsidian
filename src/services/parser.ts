@@ -337,7 +337,8 @@ export class Parser {
 
   /**
    * Overlapping cloze notes: a title line tagged #<tag>/overlap followed by a
-   * list. Each list item becomes one cloze ({{c1::...}}, {{c2::...}}, ...).
+   * list or by plain lines (up to the next blank line). Each list item or
+   * line becomes one cloze ({{c1::...}}, {{c2::...}}, ...).
    * The overlap settings come from (lowest to highest priority): plugin
    * settings, the `cards-overlap` frontmatter field, and an inline
    * `%%overlap: before,after,onlyContext,revealAll,inactiveHints%%` comment.
@@ -372,16 +373,29 @@ export class Parser {
         ? prefix.trim().length
         : -1;
 
-      // Collect list items. When the title is itself a list item, the cloze
-      // items must be nested beneath it; stop at the first sibling/outdent.
+      // Collect items, up to the first blank line.
+      // List mode (first line is a list item): one cloze per list item; when
+      //   the title is itself a list item, items must be nested beneath it,
+      //   so stop at the first sibling/outdent or non-list line.
+      // Plain mode (e.g. a poem): one cloze per line; stop at a block ID
+      //   line or at a sibling list item of a list-item title.
+      const listItem = /^([ \t]*)(\d+[.)]|[-+*])[ \t]+(.*)$/;
+      const indentOf = (s: string) =>
+        s.match(/^[ \t]*/)[0].replace(/\t/g, "    ").length;
+      const itemLines = match[7].split("\n").filter((l) => l.trim());
+      const listMode = itemLines.length > 0 && listItem.test(itemLines[0]);
       const items: { text: string; ordered: boolean }[] = [];
-      for (const line of match[7].split("\n")) {
-        if (!line.trim()) continue;
-        const m = line.match(/^([ \t]*)(\d+[.)]|[-+*])[ \t]+(.*)$/);
-        if (!m) break;
-        const indent = m[1].replace(/\t/g, "    ").length;
-        if (headerIsListItem && indent <= headerIndent) break;
-        items.push({ text: m[3].trim(), ordered: /\d/.test(m[2]) });
+      for (const line of itemLines) {
+        const m = line.match(listItem);
+        if (listMode) {
+          if (!m) break;
+          if (headerIsListItem && indentOf(m[1]) <= headerIndent) break;
+          items.push({ text: m[3].trim(), ordered: /\d/.test(m[2]) });
+        } else {
+          if (/^\s*\^\d{13}\s*$/.test(line)) break;
+          if (m && headerIsListItem && indentOf(m[1]) <= headerIndent) break;
+          items.push({ text: line.trim(), ordered: false });
+        }
       }
       if (items.length === 0) continue;
 

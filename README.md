@@ -35,6 +35,14 @@ Enumerations can be written as a title tagged `#<tag>/overlap` (or `#<tag>-overl
 ```
 
 - The Anki note type must already exist (default: `Cloze (Modern Overlapping)`, with fields `Text`, `Back Extra`, `Before|After|OnlyContext|RevealAll|InactiveHints`). Change the name in settings if yours differs.
+- Items can also be plain lines (e.g. a poem): every non-blank line up to the next blank line becomes a cloze.
+
+```markdown
+Blessing #anki/overlap %%overlap: no-ask-all%%
+Blessed is the person
+who delights in seeing
+```
+
 - The title can be a list item (items must be nested under it), a heading, or a plain line.
 - Ordered lists keep their numbers in the card; bulleted lists do not.
 - The Anki ID is written at the end of the title line (`^1234567890123`).
