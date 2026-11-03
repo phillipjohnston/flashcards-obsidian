@@ -50,7 +50,7 @@ export class Regex {
 
     // https://regex101.com/r/WxuFI2/1
     this.globalTagsSplitter =
-      /\[\[(.*?)\]\]|#([\p{L}:\-_/]+)|([\p{L}:\-_/]+)/gimu;
+      /\[\[(.*?)\]\]|#([\p{L}\d:\-_/]+)|([\p{L}\d:\-_/]+)/gimu;
     this.tagHierarchy = /\//gm;
 
     // Cards
@@ -61,7 +61,7 @@ export class Regex {
       settings.flashcardsTag +
       "\\b)[^\\n]\\n?)+?)(#" +
       settings.flashcardsTag +
-      "(?:[/-]reverse)?)(?![/\\-\\w])((?: *#[\\p{Letter}\\-\\/_]+)*) *?\\n+((?:[^\\n]\\n?)*?(?=\\^\\d{13}|$))(?:\\^(\\d{13}))?";
+      "(?:[/-]reverse)?)(?![/\\-\\w])((?: *#[\\p{Number}\\p{Letter}\\-\\/_]+)*) *?\\n+((?:[^\\n]\\n?)*?(?=\\^\\d{13}|$))(?:\\^(\\d{13}))?";
     this.flashscardsWithTag = new RegExp(str, flags);
 
     // https://regex101.com/r/8wmOo8/1
@@ -81,14 +81,14 @@ export class Regex {
         sepLongest +
         "|" +
         sepShortest +
-        ") ?(.+?)((?: *#[\\p{Letter}\\-\\/_]+)+)?(?:\\s+\\^(\\d{13})|$)";
+        ") ?(.+?)((?: *#[\\p{Number}\\p{Letter}\\-\\/_]+)+)?(?:\\s+\\^(\\d{13})|$)";
     } else {
       str =
         "( {0,3}[#]{0,6})?(?:(?:[\\t ]*)(?:\\d\\.|[-+*]|#{1,6}))?(.+?) ?(" +
         sepLongest +
         "|" +
         sepShortest +
-        ") ?(.+?)((?: *#[\\p{Letter}\\-\\/_]+)+|$)(?:\\n\\^(\\d{13}))?";
+        ") ?(.+?)((?: *#[\\p{Number}\\p{Letter}\\-\\/_]+)+|$)(?:\\n\\^(\\d{13}))?";
     }
     this.cardsInlineStyle = new RegExp(str, flags);
 
@@ -98,7 +98,7 @@ export class Regex {
       settings.flashcardsTag +
       "\\b)[^\\n]\\n?)+?)(#" +
       settings.flashcardsTag +
-      "[/-]spaced)((?: *#[\\p{Letter}-]+)*) *\\n?(?:\\^(\\d{13}))?";
+      "[/-]spaced)((?: *#[\\p{Number}\\p{Letter}-]+)*) *\\n?(?:\\^(\\d{13}))?";
     this.cardsSpacedStyle = new RegExp(str, flags);
 
     // Overlapping cloze: a title line tagged #<tag>/overlap followed by a list
@@ -112,7 +112,7 @@ export class Regex {
     str =
       "^([ \\t]*(?:#{1,6} +|[-+*] +|\\d+[.)] +)?)([^\\n]+?) +#" +
       settings.flashcardsTag +
-      "[/-]overlap((?: +#[\\p{Letter}\\-\\/_]+)*)(?:[ \\t]*%%\\s*overlap:?\\s*([^%\\n]*?)\\s*%%)?()(?:[ \\t]+\\^(\\d{13}))?[ \\t]*\\n" +
+      "[/-]overlap((?: +#[\\p{Number}\\p{Letter}\\-\\/_]+)*)(?:[ \\t]*%%\\s*overlap:?\\s*([^%\\n]*?)\\s*%%)?()(?:[ \\t]+\\^(\\d{13}))?[ \\t]*\\n" +
       "((?:(?![^\\n]*#" +
       settings.flashcardsTag +
       "[/-]overlap)[ \\t]*\\S[^\\n]*(?:\\n|$))+)";
