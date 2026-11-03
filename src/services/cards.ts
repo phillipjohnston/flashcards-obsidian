@@ -22,7 +22,9 @@ export class CardsService {
   private anki: Anki;
 
   private updateFile: boolean;
-  private totalOffset: number;
+  // Edits to this.file, expressed against the file as originally read.
+  // Applied together (bottom-up) so offsets never go stale.
+  private fileEdits: { offset: number; remove: number; insert: string }[];
   private file: string;
   private notifications: string[];
 
@@ -46,7 +48,7 @@ export class CardsService {
 
     // Init for the execute phase
     this.updateFile = false;
-    this.totalOffset = 0;
+    this.fileEdits = [];
     this.notifications = [];
     const filePath = activeFile.basename;
     const sourcePath = activeFile.path;
@@ -128,6 +130,7 @@ export class CardsService {
       }
 
       // Update file
+      this.applyFileEdits();
       if (this.updateFile) {
         try {
           this.app.vault.modify(activeFile, this.file);
@@ -263,17 +266,25 @@ export class CardsService {
             id = "\n" + id;
           }
         }
-        card.endOffset += this.totalOffset;
-        const offset = card.endOffset;
-
-        this.updateFile = true;
-        this.file =
-          this.file.substring(0, offset) +
-          id +
-          this.file.substring(offset, this.file.length + 1);
-        this.totalOffset += id.length;
+        this.fileEdits.push({ offset: card.endOffset, remove: 0, insert: id });
       }
     }
+  }
+
+  private applyFileEdits() {
+    if (!this.fileEdits.length) return;
+    // Bottom-up so earlier offsets stay valid; stable sort keeps same-offset order
+    const edits = this.fileEdits
+      .map((e, i) => ({ ...e, i }))
+      .sort((a, b) => b.offset - a.offset || b.i - a.i);
+    for (const e of edits) {
+      this.file =
+        this.file.substring(0, e.offset) +
+        e.insert +
+        this.file.substring(e.offset + e.remove);
+    }
+    this.fileEdits = [];
+    this.updateFile = true;
   }
 
   private async updateCardsOnAnki(cards: Card[]): Promise<number> {
@@ -303,41 +314,37 @@ export class CardsService {
     cards: number[],
     ankiBlocks: RegExpMatchArray[]
   ): Promise<number> {
-    if (cards.length) {
-      let deletedCards = 0;
-      for (const block of ankiBlocks) {
-        const id = Number(block[1]);
+    if (!cards.length) return 0;
 
-        // Deletion of cards that need to be deleted (i.e. blocks ID that don't have content)
-        if (cards.includes(id)) {
-          try {
-            this.anki.deleteCards(cards);
-            deletedCards++;
-
-            this.updateFile = true;
-            this.file =
-              this.file.substring(0, block["index"]) +
-              this.file.substring(
-                block["index"] + block[0].length,
-                this.file.length
-              );
-            this.totalOffset -= block[0].length;
-            this.notifications.push(
-              `Deleted successfully ${deletedCards}/${cards.length} cards.`
-            );
-          } catch (err) {
-            console.error(err);
-            const errorMessage =
-              "Error: Could not delete the card from Anki - " +
-              (err instanceof Error ? err.message : String(err));
-            new Notice(errorMessage, noticeTimeout);
-            this.notifications.push(errorMessage);
-          }
-        }
-      }
-
-      return deletedCards;
+    try {
+      await this.anki.deleteCards(cards);
+    } catch (err) {
+      console.error(err);
+      const errorMessage =
+        "Error: Could not delete the card from Anki - " +
+        (err instanceof Error ? err.message : String(err));
+      new Notice(errorMessage, noticeTimeout);
+      this.notifications.push(errorMessage);
+      return 0;
     }
+
+    // Remove the orphaned ID blocks (block IDs with no content above them)
+    let deletedCards = 0;
+    for (const block of ankiBlocks) {
+      if (cards.includes(Number(block[1]))) {
+        this.fileEdits.push({
+          offset: block.index,
+          remove: block[0].length,
+          insert: "",
+        });
+        deletedCards++;
+      }
+    }
+    this.notifications.push(
+      `Deleted successfully ${deletedCards}/${cards.length} cards.`
+    );
+
+    return deletedCards;
   }
 
   private getAnkiIDs(blocks: RegExpMatchArray[]): number[] {
