@@ -87,7 +87,10 @@ export class CardsService {
         deckName,
         vaultName,
         filePath,
-        globalTags
+        globalTags,
+        frontmatter?.["cards-overlap"] != null
+          ? String(frontmatter["cards-overlap"])
+          : undefined
       );
       const [cardsToCreate, cardsToUpdate, cardsNotInAnki] =
         this.filterByUpdate(ankiCards, cards);

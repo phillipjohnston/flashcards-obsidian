@@ -11,4 +11,7 @@ export interface ISettings {
   defaultAnkiTag: string;
   ankiConnectPermission: boolean;
   includeGlobalTags: boolean;
+  overlapModelName: string;
+  overlapDefaults: string;
+  overlapAskAll: boolean;
 }

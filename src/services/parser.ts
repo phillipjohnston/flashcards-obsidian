@@ -4,7 +4,14 @@ import { Regex } from "src/regex";
 import { Flashcard } from "../entities/flashcard";
 import { Inlinecard } from "src/entities/inlinecard";
 import { Spacedcard } from "src/entities/spacedcard";
-import { Clozecard } from "src/entities/clozecard";
+import {
+  Overlapcard,
+  normalizeOverlapSpec,
+  overlapExtraField,
+  overlapSettingsField,
+  overlapTextField,
+  specAskAll,
+} from "src/entities/overlapcard";
 import { escapeMarkdown, substituteSep } from "src/utils";
 import { Card } from "src/entities/card";
 
@@ -31,7 +38,8 @@ export class Parser {
     deck: string,
     vault: string,
     note: string,
-    globalTags: string[] = []
+    globalTags: string[] = [],
+    overlapSpec: string = undefined
   ): Flashcard[] {
     const contextAware = this.settings.contextAwareMode;
     let cards: Flashcard[] = [];
@@ -56,9 +64,17 @@ export class Parser {
     cards = cards.concat(
       this.generateSpacedCards(file, headings, deck, vault, note, globalTags)
     );
-    // cards = cards.concat(
-    //   this.generateClozeCards(file, headings, deck, vault, note, globalTags)
-    // );
+    cards = cards.concat(
+      this.generateOverlapCards(
+        file,
+        headings,
+        deck,
+        vault,
+        note,
+        globalTags,
+        overlapSpec
+      )
+    );
     cards.sort((a, b) => a.endOffset - b.endOffset);
 
     const defaultAnkiTag = this.settings.defaultAnkiTag;
@@ -319,6 +335,127 @@ export class Parser {
     return cards;
   }
 
+  /**
+   * Overlapping cloze notes: a title line tagged #<tag>/overlap followed by a
+   * list. Each list item becomes one cloze ({{c1::...}}, {{c2::...}}, ...).
+   * The overlap settings come from (lowest to highest priority): plugin
+   * settings, the `cards-overlap` frontmatter field, and an inline
+   * `%%overlap: before,after,onlyContext,revealAll,inactiveHints%%` comment.
+   * Partial specs are allowed ("2" or "2,1"). A {{c99::ask-all}} cloze is
+   * appended when the overlapAskAll setting is on; `ask-all` / `no-ask-all`
+   * in either spec overrides it (card beats note beats setting).
+   */
+  private generateOverlapCards(
+    file: string,
+    headings: any,
+    deck: string,
+    vault: string,
+    note: string,
+    globalTags: string[] = [],
+    noteSpec: string = undefined
+  ) {
+    const contextAware = this.settings.contextAwareMode;
+    const cards: Overlapcard[] = [];
+    const matches = [...file.matchAll(this.regex.cardsOverlapStyle)];
+    const baseSpec = normalizeOverlapSpec(
+      noteSpec,
+      normalizeOverlapSpec(this.settings.overlapDefaults)
+    );
+
+    for (const match of matches) {
+      const prefix = match[1] ?? "";
+      const headerIndent = prefix
+        .match(/^[ \t]*/)[0]
+        .replace(/\t/g, "    ").length;
+      const headerIsListItem = /[-+*]|\d+[.)]/.test(prefix.trim());
+      const headingLevel = /^#+$/.test(prefix.trim())
+        ? prefix.trim().length
+        : -1;
+
+      // Collect list items. When the title is itself a list item, the cloze
+      // items must be nested beneath it; stop at the first sibling/outdent.
+      const items: { text: string; ordered: boolean }[] = [];
+      for (const line of match[7].split("\n")) {
+        if (!line.trim()) continue;
+        const m = line.match(/^([ \t]*)(\d+[.)]|[-+*])[ \t]+(.*)$/);
+        if (!m) break;
+        const indent = m[1].replace(/\t/g, "    ").length;
+        if (headerIsListItem && indent <= headerIndent) break;
+        items.push({ text: m[3].trim(), ordered: /\d/.test(m[2]) });
+      }
+      if (items.length === 0) continue;
+
+      const context = contextAware
+        ? this.getContext(headings, match.index - 1, headingLevel)
+        : [];
+      const originalTitle = match[2].trim();
+      const title = contextAware
+        ? [...context, originalTitle].join(this.settings.contextSeparator)
+        : originalTitle;
+
+      let medias: string[] = this.getImageLinks(title);
+      const lines: string[] = [`<b>${this.parseInline(title, vault)}</b>`];
+      items.forEach((item, i) => {
+        medias = medias.concat(this.getImageLinks(item.text));
+        medias = medias.concat(this.getAudioLinks(item.text));
+        const prefixNum = item.ordered ? `${i + 1}. ` : "";
+        lines.push(
+          `${prefixNum}{{c${i + 1}::${this.parseInline(item.text, vault)}}}`
+        );
+      });
+      const inlineSpec = match[4];
+      const askAll = specAskAll(
+        inlineSpec,
+        specAskAll(noteSpec, this.settings.overlapAskAll ?? true)
+      );
+      if (askAll) {
+        lines.push("{{c99::ask-all}}");
+      }
+
+      const fields: any = {
+        [overlapTextField]: lines.join("<br>"),
+        [overlapExtraField]: this.settings.sourceSupport ? note : "",
+        [overlapSettingsField]: normalizeOverlapSpec(inlineSpec, baseSpec),
+      };
+
+      const tags: string[] = this.parseTags(match[3], globalTags);
+      const id: number = match[6] ? Number(match[6]) : -1;
+      const inserted = !!match[6];
+      const endOffset =
+        match.index + match[0].indexOf("\n") - this.headerTail(match);
+
+      cards.push(
+        new Overlapcard(
+          id,
+          deck,
+          originalTitle,
+          fields,
+          endOffset,
+          tags,
+          inserted,
+          medias,
+          this.settings.overlapModelName
+        )
+      );
+    }
+
+    return cards;
+  }
+
+  /** Length of the header line after the ID insertion point (ID + trailing spaces). */
+  private headerTail(match: RegExpMatchArray): number {
+    const header = match[0].substring(0, match[0].indexOf("\n"));
+    const beforeId = header.replace(/(?:[ \t]+\^\d{13})?[ \t]*$/, "");
+    return header.length - beforeId.length;
+  }
+
+  /** parseLine without the wrapping <p> that showdown adds. */
+  private parseInline(str: string, vault: string): string {
+    return this.parseLine(str, vault)
+      .trim()
+      .replace(/^<p>([\s\S]*)<\/p>$/, "$1");
+  }
+
   public containsCode(str: string[]): boolean {
     for (const s of str) {
       if (s.match(this.regex.codeBlock)) {
@@ -376,10 +513,14 @@ export class Parser {
   public updateCardSource(cards: Card[]) {
     for (const card of cards) {
       if (card.id == null) continue;
-      card.fields["Source"] = card.fields["Source"].replace(
-        "__BLOCK_ID__",
-        String(card.id)
-      );
+      for (const key of Object.keys(card.fields)) {
+        if (typeof card.fields[key] === "string") {
+          card.fields[key] = card.fields[key].replace(
+            /__BLOCK_ID__/g,
+            String(card.id)
+          );
+        }
+      }
     }
   }
 

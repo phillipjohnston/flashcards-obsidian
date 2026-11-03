@@ -221,5 +221,53 @@ export class SettingsTab extends PluginSettingTab {
             plugin.saveData(plugin.settings);
           });
       });
+
+    containerEl.createEl("h2", { text: "Overlapping Cloze" });
+
+    new Setting(containerEl)
+      .setName("Overlapping cloze note type")
+      .setDesc(
+        "Existing Anki note type used for #<tag>/overlap cards. It must have the fields Text, Back Extra, and Before|After|OnlyContext|RevealAll|InactiveHints."
+      )
+      .addText((text) => {
+        text
+          .setValue(plugin.settings.overlapModelName)
+          .setPlaceholder("Cloze (Modern Overlapping)")
+          .onChange((value) => {
+            plugin.settings.overlapModelName =
+              value.trim() || "Cloze (Modern Overlapping)";
+            plugin.saveData(plugin.settings);
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Default overlap settings")
+      .setDesc(
+        "Before,After,OnlyContext,RevealAll,InactiveHints. Override per note with the 'cards-overlap' frontmatter field, or per card with %%overlap: 2,1%% on the title line."
+      )
+      .addText((text) => {
+        text
+          .setValue(plugin.settings.overlapDefaults)
+          .setPlaceholder("3,0,false,true,false")
+          .onChange((value) => {
+            plugin.settings.overlapDefaults =
+              value.trim() || "3,0,false,true,false";
+            plugin.saveData(plugin.settings);
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Add ask-all card")
+      .setDesc(
+        "Append a {{c99::ask-all}} cloze to overlapping cloze notes. Override with 'ask-all' or 'no-ask-all' in cards-overlap or %%overlap: ...%%."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(plugin.settings.overlapAskAll ?? true)
+          .onChange((value) => {
+            plugin.settings.overlapAskAll = value;
+            plugin.saveData(plugin.settings);
+          })
+      );
   }
 }

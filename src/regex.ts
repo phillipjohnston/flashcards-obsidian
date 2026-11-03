@@ -15,6 +15,7 @@ export class Regex {
   flashscardsWithTag: RegExp;
   cardsInlineStyle: RegExp;
   cardsSpacedStyle: RegExp;
+  cardsOverlapStyle: RegExp;
   cardsClozeWholeLine: RegExp;
   singleClozeCurly: RegExp;
   singleClozeHighlight: RegExp;
@@ -56,9 +57,11 @@ export class Regex {
     const flags = "gimu";
     // https://regex101.com/r/p3yQwY/2
     let str =
-      "( {0,3}[#]*)((?:[^\\n]\\n?)+?)(#" +
+      "( {0,3}[#]*)((?:(?!#" +
       settings.flashcardsTag +
-      "(?:[/-]reverse)?)((?: *#[\\p{Letter}\\-\\/_]+)*) *?\\n+((?:[^\\n]\\n?)*?(?=\\^\\d{13}|$))(?:\\^(\\d{13}))?";
+      "\\b)[^\\n]\\n?)+?)(#" +
+      settings.flashcardsTag +
+      "(?:[/-]reverse)?)(?![/\\-\\w])((?: *#[\\p{Letter}\\-\\/_]+)*) *?\\n+((?:[^\\n]\\n?)*?(?=\\^\\d{13}|$))(?:\\^(\\d{13}))?";
     this.flashscardsWithTag = new RegExp(str, flags);
 
     // https://regex101.com/r/8wmOo8/1
@@ -91,10 +94,28 @@ export class Regex {
 
     // https://regex101.com/r/HOXF5E/1
     str =
-      "( {0,3}[#]*)((?:[^\\n]\\n?)+?)(#" +
+      "( {0,3}[#]*)((?:(?!#" +
+      settings.flashcardsTag +
+      "\\b)[^\\n]\\n?)+?)(#" +
       settings.flashcardsTag +
       "[/-]spaced)((?: *#[\\p{Letter}-]+)*) *\\n?(?:\\^(\\d{13}))?";
     this.cardsSpacedStyle = new RegExp(str, flags);
+
+    // Overlapping cloze: a title line tagged #<tag>/overlap followed by a list.
+    //   - Three Times #anki/overlap %%overlap: 2,1%% ^1234567890123
+    //   \t1. Past
+    //   \t2. Present
+    // 1: line prefix (heading/list marker), 2: title, 3: extra tags,
+    // 4: overlap spec from the %%overlap: ...%% comment, 5: (unused, empty),
+    // 6: Anki ID, 7: list item lines
+    str =
+      "^([ \\t]*(?:#{1,6} +|[-+*] +|\\d+[.)] +)?)([^\\n]+?) +#" +
+      settings.flashcardsTag +
+      "[/-]overlap((?: +#[\\p{Letter}\\-\\/_]+)*)(?:[ \\t]*%%\\s*overlap:?\\s*([^%\\n]*?)\\s*%%)?()(?:[ \\t]+\\^(\\d{13}))?[ \\t]*\\n" +
+      "((?:(?![^\\n]*#" +
+      settings.flashcardsTag +
+      "[/-]overlap)[ \\t]*(?:\\d+[.)]|[-+*])[ \\t]+[^\\n]*(?:\\n|$))+)";
+    this.cardsOverlapStyle = new RegExp(str, flags);
 
     // https://regex101.com/r/cgtnLf/1
     // str = "(?:.*?(==(.*?)==).*)(?:\n?^(d{13}))?";
