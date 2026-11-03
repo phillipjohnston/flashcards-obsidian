@@ -41,6 +41,34 @@ export class SettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
+      .setName("Start Anki automatically")
+      .setDesc(
+        "If AnkiConnect does not answer when generating cards, launch Anki and wait up to a minute for it. Click the waiting notice to cancel."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(plugin.settings.autoStartAnki ?? true)
+          .onChange((value) => {
+            plugin.settings.autoStartAnki = value;
+            plugin.saveData(plugin.settings);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Ask before deleting cards")
+      .setDesc(
+        "Confirm before deleting Anki notes whose card content was removed from the note. Declining keeps the notes and leaves their IDs in place."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(plugin.settings.confirmBeforeDelete ?? true)
+          .onChange((value) => {
+            plugin.settings.confirmBeforeDelete = value;
+            plugin.saveData(plugin.settings);
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Test Anki")
       .setDesc("Test that connection between Anki and Obsidian actually works.")
       .addButton((text) => {

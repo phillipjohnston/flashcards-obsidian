@@ -14,4 +14,6 @@ export interface ISettings {
   overlapModelName: string;
   overlapDefaults: string;
   overlapAskAll: boolean;
+  autoStartAnki: boolean;
+  confirmBeforeDelete: boolean;
 }

@@ -13,6 +13,11 @@ import { arrayBufferToBase64 } from "src/utils";
 import { Regex } from "src/regex";
 import { noticeTimeout } from "src/constants";
 import { Inlinecard } from "src/entities/inlinecard";
+import { ensureAnkiRunning } from "src/services/anki-launcher";
+import {
+  ConfirmDeleteModal,
+  PendingDeletion,
+} from "src/gui/confirm-delete-modal";
 
 export class CardsService {
   private app: App;
@@ -39,10 +44,9 @@ export class CardsService {
   public async execute(activeFile: TFile): Promise<string[]> {
     this.regex.update(this.settings);
 
-    try {
-      await this.anki.ping();
-    } catch (err) {
-      console.error(err);
+    if (
+      !(await ensureAnkiRunning(this.anki, this.settings.autoStartAnki ?? true))
+    ) {
       return ["Error: Anki must be open with AnkiConnect installed."];
     }
 
@@ -313,11 +317,44 @@ export class CardsService {
     }
   }
 
+  private async describeDeletions(ids: number[]): Promise<PendingDeletion[]> {
+    let infos: any[] = [];
+    try {
+      infos = await this.anki.getCards(ids);
+    } catch (err) {
+      console.error(err);
+    }
+    return ids.map((id, i) => {
+      const fields = infos[i]?.fields ?? {};
+      const first = Object.values(fields).find(
+        (f: any) => f.order === 0
+      ) as any;
+      const front = (first?.value ?? "")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return { id, front: front.length > 120 ? front.slice(0, 117) + "…" : front };
+    });
+  }
+
   public async deleteCardsOnAnki(
     cards: number[],
     ankiBlocks: RegExpMatchArray[]
   ): Promise<number> {
     if (!cards.length) return 0;
+
+    if (
+      (this.settings.confirmBeforeDelete ?? true) &&
+      !(await ConfirmDeleteModal.ask(
+        this.app,
+        await this.describeDeletions(cards)
+      ))
+    ) {
+      this.notifications.push(
+        `Kept ${cards.length} card(s) in Anki; their IDs remain in the note.`
+      );
+      return 0;
+    }
 
     try {
       await this.anki.deleteCards(cards);

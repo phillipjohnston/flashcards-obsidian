@@ -14,16 +14,7 @@ export default class ObsidianFlashcard extends Plugin {
 
     // TODO test when file did not insert flashcards, but one of them is in Anki already
     const saved = await this.loadData();
-    this.settings = saved
-      ? Object.assign(
-          {
-            overlapModelName: "Cloze (Modern Overlapping)",
-            overlapDefaults: "3,0,false,true,false",
-            overlapAskAll: true,
-          },
-          saved
-        )
-      : this.getDefaultSettings();
+    this.settings = Object.assign(this.getDefaultSettings(), saved ?? {});
     this.cardsService = new CardsService(this.app, this.settings);
 
     this.addCommand({
@@ -74,6 +65,8 @@ export default class ObsidianFlashcard extends Plugin {
       overlapModelName: "Cloze (Modern Overlapping)",
       overlapDefaults: "3,0,false,true,false",
       overlapAskAll: true,
+      autoStartAnki: true,
+      confirmBeforeDelete: true,
     };
   }
 
